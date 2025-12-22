@@ -68,28 +68,37 @@ BASE_PAYLOAD = {
 }
 
 # Değişmeyen filtreler (Senin payload dosyanla aynı)
+# STATIC_PARAMS = [
+#     {"filterName": "acpId", "filterValues": ["5fae73c9-778e-408f-9be8-1b9111499b24"]},
+#     {"filterName": "cdnCacheSafe", "filterValues": ["false"]},
+#     {"filterName": "channel", "filterValues": ["EXPLORE"]},
+#     {"filterName": "datePickerType", "filterValues": ["calendar"]},
+#     {"filterName": "flexibleTripLengths", "filterValues": ["one_week"]},
+#     {"filterName": "itemsPerGrid", "filterValues": ["50"]}, # Veriyi artırmak için 18 yerine 50 yaptım
+#     {"filterName": "mapToggle", "filterValues": ["true"]},
+#     {"filterName": "monthlyEndDate", "filterValues": ["2026-04-01"]},
+#     {"filterName": "monthlyLength", "filterValues": ["3"]},
+#     {"filterName": "monthlyStartDate", "filterValues": ["2026-01-01"]},
+#     {"filterName": "placeId", "filterValues": ["ChIJexVgWlG2yhQR6B1akfSarCI"]},
+#     {"filterName": "priceFilterInputType", "filterValues": ["2"]},
+#     {"filterName": "priceFilterNumNights", "filterValues": ["5"]},
+#     {"filterName": "query", "filterValues": ["İstanbul, Türkiye"]},
+#     {"filterName": "refinementPaths", "filterValues": ["/homes"]},
+#     {"filterName": "screenSize", "filterValues": ["small"]},
+#     {"filterName": "searchByMap", "filterValues": ["true"]},
+#     {"filterName": "searchMode", "filterValues": ["regular_search"]},
+#     {"filterName": "tabId", "filterValues": ["home_tab"]},
+#     {"filterName": "version", "filterValues": ["1.8.3"]},
+#     {"filterName": "zoomLevel", "filterValues": ["14"]} # Zoom seviyesi veri yoğunluğunu etkiler
+# ]
 STATIC_PARAMS = [
-    {"filterName": "acpId", "filterValues": ["5fae73c9-778e-408f-9be8-1b9111499b24"]},
-    {"filterName": "cdnCacheSafe", "filterValues": ["false"]},
     {"filterName": "channel", "filterValues": ["EXPLORE"]},
-    {"filterName": "datePickerType", "filterValues": ["calendar"]},
-    {"filterName": "flexibleTripLengths", "filterValues": ["one_week"]},
-    {"filterName": "itemsPerGrid", "filterValues": ["50"]}, # Veriyi artırmak için 18 yerine 50 yaptım
+    {"filterName": "itemsPerGrid", "filterValues": ["50"]},
     {"filterName": "mapToggle", "filterValues": ["true"]},
-    {"filterName": "monthlyEndDate", "filterValues": ["2026-04-01"]},
-    {"filterName": "monthlyLength", "filterValues": ["3"]},
-    {"filterName": "monthlyStartDate", "filterValues": ["2026-01-01"]},
-    {"filterName": "placeId", "filterValues": ["ChIJexVgWlG2yhQR6B1akfSarCI"]},
-    {"filterName": "priceFilterInputType", "filterValues": ["2"]},
-    {"filterName": "priceFilterNumNights", "filterValues": ["5"]},
-    {"filterName": "query", "filterValues": ["İstanbul, Türkiye"]},
-    {"filterName": "refinementPaths", "filterValues": ["/homes"]},
-    {"filterName": "screenSize", "filterValues": ["small"]},
     {"filterName": "searchByMap", "filterValues": ["true"]},
     {"filterName": "searchMode", "filterValues": ["regular_search"]},
-    {"filterName": "tabId", "filterValues": ["home_tab"]},
-    {"filterName": "version", "filterValues": ["1.8.3"]},
-    {"filterName": "zoomLevel", "filterValues": ["14"]} # Zoom seviyesi veri yoğunluğunu etkiler
+    {"filterName": "version", "filterValues": ["1.8.3"]}
+    # {"filterName": "zoomLevel", "filterValues": ["14"]}
 ]
 
 def save_raw_response(data, prefix="airbnb"):
@@ -103,7 +112,7 @@ def save_raw_response(data, prefix="airbnb"):
     print(f"[KAYIT] Veri kaydedildi: {filename}")
     return filename
 
-def build_params(ne_lat, ne_lng, sw_lat, sw_lng):
+def build_params(ne_lat, ne_lng, sw_lat, sw_lng, checkin, checkout, adults, zoom_level):
     """Statik parametrelere dinamik koordinatları ekler."""
     # Listeyi kopyala ki orijinali bozulmasın
     current_params = copy.deepcopy(STATIC_PARAMS)
@@ -113,15 +122,27 @@ def build_params(ne_lat, ne_lng, sw_lat, sw_lng):
     current_params.append({"filterName": "neLng", "filterValues": [str(ne_lng)]})
     current_params.append({"filterName": "swLat", "filterValues": [str(sw_lat)]})
     current_params.append({"filterName": "swLng", "filterValues": [str(sw_lng)]})
+
+    if checkin and checkout:
+        current_params.append({"filterName": "checkin", "filterValues": [checkin]})
+        current_params.append({"filterName": "checkout", "filterValues": [checkout]})
+        current_params.append({"filterName": "datePickerType", "filterValues": ["calendar"]})
+
+    if adults:
+         current_params.append({"filterName": "adults", "filterValues": [str(adults)]})
+
+    if zoom_level:
+        current_params.append({"filterName": "zoomLevel", "filterValues": [str(zoom_level)]})
+
     
     return current_params
 
-def fetch_data(ne_lat, ne_lng, sw_lat, sw_lng):
+def fetch_data(ne_lat, ne_lng, sw_lat, sw_lng, checkin=None, checkout=None, adults=1, zoom_level=14):
     # Base payload'un kopyasını al
     payload = copy.deepcopy(BASE_PAYLOAD)
     
     # Koordinatları içeren parametre listesini oluştur
-    dynamic_params = build_params(ne_lat, ne_lng, sw_lat, sw_lng)
+    dynamic_params = build_params(ne_lat, ne_lng, sw_lat, sw_lng, checkin, checkout, adults,zoom_level)
     
     # Hem V1 hem V2 isteğine parametreleri göm (Airbnb ikisine de bakıyor)
     payload["variables"]["staysSearchRequest"]["rawParams"] = dynamic_params

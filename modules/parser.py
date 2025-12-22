@@ -31,7 +31,8 @@ def parse_single_file(filepath):
                 'title': item.get('nameLocalized', {}).get('localizedStringWithTranslationPreference'),
                 'lat': demand_stay.get('location', {}).get('coordinate', {}).get('latitude'),
                 'lng': demand_stay.get('location', {}).get('coordinate', {}).get('longitude'),
-                'price': price_val,
+                'price_str': price_str,
+                'price_numeric': price_val,
                 'rating_text': item.get('avgRatingLocalized'),
                 'source_file': os.path.basename(filepath) # Hangi dosyadan geldiğini takip etmek için
             }
