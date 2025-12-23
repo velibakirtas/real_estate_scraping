@@ -16,7 +16,6 @@ HEADERS = {
 
 URL = "https://www.airbnb.com.tr/api/v3/StaysSearch/d9ab2c7e443b50fdce5cdcb69d4f7e7626dbab1609c981565a6c4bdbb04546e3"
 
-# Senin gönderdiğin çalışan payload şablonu (Statik kısımlar)
 BASE_PAYLOAD = {
     "operationName": "StaysSearch",
     "variables": {
