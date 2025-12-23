@@ -1,7 +1,12 @@
-from modules import fetcher, parser
+from modules import fetcher
 import os
 import time
 import sys
+from modules import parser
+from modules import cleaner
+from pathlib import Path
+
+
 
 def get_input(prompt_text, default=None):
     """Kullanıcıdan veri alır, boş bırakırsa varsayılanı döner."""
@@ -86,30 +91,35 @@ def main():
             time.sleep(2)
         else:
             print(f"UYARI: Bölge {idx+1} için veri alınamadı!")
+    return checkin, checkout
 
-    # --- 5. ADIM: Veri İşleme (Parsing) ---
-    if successful_fetches > 0:
-        print("\n>>> PARSE İŞLEMİNE GEÇİLİYOR...")
-        df = parser.process_all_raw_files()
+
+# def parse(checkin, checkout):
+#     parser.process_all_raw_files()
+#     df = parser.process_all_raw_files()
+#     output_file = f"data/processed/parsed_result_{checkin}_{checkout}.csv"
+#     df.to_csv(output_file, index=False)
+
+def parse():
+    parser.process_all_raw_files()
+    df = parser.process_all_raw_files()
+    parsed_output_file = f"data/processed/parsed/parsed_result.csv"
+    df.to_csv(parsed_output_file, index=False)
+
+def clean():
+    raw_dir = Path("data/processed/parsed")
+    files = list(raw_dir.glob("*.csv"))
+
+    df = cleaner.main(files[0])
+    cleaned_output_file = f"data/processed/cleaned/cleaned_result.csv"
+    df.to_csv(cleaned_output_file, index=False)
+    print(files)
         
-        if df is not None and not df.empty:
-            output_file = f"data/processed/search_result_{checkin}_{checkout}.csv"
-            # Klasör kontrolü
-            if not os.path.exists("data/processed"):
-                os.makedirs("data/processed")
-                
-            df.to_csv(output_file, index=False)
-            print(f"\n[MUTLU SON] Tüm işlemler tamamlandı! 🎉")
-            print(f"Toplam İlan: {len(df)}")
-            print(f"Dosya Yolu: {output_file}")
-            print(df[['title', 'price_numeric', 'rating_text']].head())
-        else:
-            print("Veri çekildi ama parse edilemedi.")
-    else:
-        print("Hiçbir bölgeden veri çekilemedi.")
 
 if __name__ == "__main__":
-    main()
+    # checkin, checkout = main()
+    parse() # proddayken parametreli olan metod çalıştırlacak ve main metodu da aktifleştirilecek
+    clean()
 
 # Test Coordinates
 # #         (41.045, 29.005, 41.035, 28.995), # Bölge 1
