@@ -5,6 +5,8 @@ import sys
 from modules import parser
 from modules import cleaner
 from pathlib import Path
+from modules.gridding import GridGenerator
+
 
 
 
@@ -47,6 +49,7 @@ def main():
         region_count = 1
 
     regions = []
+    grid_generator = GridGenerator(target_hectares=8)
     for i in range(region_count):
         print(f"\n[{i+1}. BÖLGE TANIMLAMA]")
         print("İpucu: Haritada sağ üst köşe (NE) ve sol alt köşe (SW) gereklidir.")
@@ -57,8 +60,11 @@ def main():
         sw_lng = get_float_input(f"Bölge {i+1} - Güney Batı (SW) BOYLAM (Lng)")
 
         zoom_level = get_input(f"Bölge {i+1} - Zoom Seviyesi (Varsayılan: 14)")
-        
-        regions.append((ne_lat, ne_lng, sw_lat, sw_lng,zoom_level))
+        tiles = grid_generator.generate_tiles(ne_lat, ne_lng, sw_lat, sw_lng)
+        for tile in tiles:
+            coords = tuple(tile.values())
+            coords = coords + (zoom_level,)
+            regions.append(coords)
 
     # --- 4. ADIM: Onay ve Başlatma ---
     print("\n" + "="*40)
@@ -94,16 +100,10 @@ def main():
     return checkin, checkout
 
 
-# def parse(checkin, checkout):
-#     parser.process_all_raw_files()
-#     df = parser.process_all_raw_files()
-#     output_file = f"data/processed/parsed_result_{checkin}_{checkout}.csv"
-#     df.to_csv(output_file, index=False)
-
-def parse():
+def parse(checkin, checkout):
     parser.process_all_raw_files()
     df = parser.process_all_raw_files()
-    parsed_output_file = f"data/processed/parsed/parsed_result.csv"
+    parsed_output_file = f"data/processed/parsed_result_{checkin}_{checkout}.csv"
     df.to_csv(parsed_output_file, index=False)
 
 def clean():
@@ -113,13 +113,13 @@ def clean():
     df = cleaner.main(files[0])
     cleaned_output_file = f"data/processed/cleaned/cleaned_result.csv"
     df.to_csv(cleaned_output_file, index=False)
-    print(files)
         
 
 if __name__ == "__main__":
-    # checkin, checkout = main()
-    parse() # proddayken parametreli olan metod çalıştırlacak ve main metodu da aktifleştirilecek
+    checkin, checkout = main()
+    parse(checkin, checkout) # proddayken parametreli olan metod çalıştırlacak ve main metodu da aktifleştirilecek
     clean()
+    main()
 
 # Test Coordinates
 # #         (41.045, 29.005, 41.035, 28.995), # Bölge 1
